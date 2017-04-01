@@ -10,25 +10,5 @@ class BooksController extends BaseRestController{
             'pages' => ceil(BookModel::getBooksCount()/ITEMS_ON_PAGE)
         );
     }
-    
-    public function putAction($args){
-        echo json_encode(array(
-            'status' => 'ok'
-        ));
-    }
-    
-    public function postAction($args){
-        echo json_encode(array(
-            'status' => 'ok'
-        ));
-    }
-    
-    public function deleteAction($args){
-        echo json_encode(array(
-            'status' => 'ok'
-        ));
-    }
-
-    
 }
 

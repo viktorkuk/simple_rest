@@ -46,10 +46,14 @@ class BaseModel{
     } 
     
     public function setData($data){
-        $dataDiff = array_diff_key($this->data,$data);
-        if(!empty($dataDiff)){
-            throw new Exception('wrong data for save!');
-        }
+        
+        foreach($data as $key => $val){
+            if(!isset($this->data[$key])){
+                throw new Exception("No $key field in object!");
+            }else{
+                $this->data[$key] = $val;
+            }
+        }                
         
         $this->data = $data;
         

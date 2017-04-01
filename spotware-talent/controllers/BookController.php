@@ -6,22 +6,26 @@ class BookController extends BaseRestController{
         $entryId = $args[0];
         $book = new BookModel($entryId);
         
-        $this->result =array(
+        $this->result = array(
             'book' => $book->getData(),
             'ratings' => $book->getRatings()
         );
     }
     
     public function putAction($args){
-        echo json_encode(array(
+        parse_str(file_get_contents("php://input"),$putVars);
+        $book = new BookModel($putVars['ISBN']);
+        $book->setData($putVars);
+        $book->save();
+        $this->result = array(
             'status' => 'ok'
-        ));
+        );
     }
     
     public function postAction($args){
-        echo json_encode(array(
+        $this->result = array(
             'status' => 'ok'
-        ));
+        );
     }
     
     public function deleteAction($args){
@@ -33,6 +37,10 @@ class BookController extends BaseRestController{
         $book->delete();
         
         $this->result = array('status' => $status);
+    }
+    
+    public function optionsAction($args){                
+        $this->result = array('status' => 'ok');
     }
 
     

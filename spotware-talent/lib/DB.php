@@ -78,18 +78,18 @@ class DB {
 
 
     public function updeteRow($table, $data, $id, $keyField = 'id'){
-        $sql = "UPDATE ".$table." SET ";
+        $sql = "UPDATE `".$table."` SET ";
         $sets = array();
         foreach($data as $column => $value){
              $sets[] = "`".$column."` = '".$this->escape($value)."'";
         }
         $sql .= implode(', ', $sets);
-        $sql .= " WHERE $keyField = ".intval($id);
+        $sql .= " WHERE `$keyField` = ".intval($id);
         return $this->rawQuery($sql);
     }
 
     public function delete($table, $id, $keyField = 'id'){
-        return $this->rawQuery("DELETE FROM $table WHERE $keyField = ".intval($id));
+        return $this->rawQuery("DELETE FROM `$table` WHERE `$keyField` = ".intval($id));
     }
 
 
