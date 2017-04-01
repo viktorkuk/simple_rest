@@ -11,6 +11,7 @@ require('templates/header.php'); ?>
     var currentPage = 0;
     
     var loadBooksPage = function(page){
+
         $.ajax({
             url: "http://spotware-talent.local/books/"+page,
             type: "GET",
@@ -29,18 +30,44 @@ require('templates/header.php'); ?>
                     var book_list_item = book_list_item_template.clone();
                     $(book_list_item).attr('class','book_list_item');
                     $(book_list_item).attr('data-isbn',this['ISBN']);
+                    $(book_list_item).attr('id',this['ISBN']);
                     $(book_list_item).find('.thumbnail img').attr('src',this['Image-URL-M']);
                     $(book_list_item).find('.title').html(this['Book-Title']);
                     $(book_list_item).find('.autor').html(this['Book-Author']);                    
                     $(book_list_item).find('.publisher').html(this['Publisher']);
                     $(book_list_item).find('.publication-date').html(this['Year-Of-Publication']);
                     $(book_list_item).appendTo('.book_list_items');
+                    getBookRatings(this['ISBN']);
                 });
                 
-                $('.book_list_item a').on( "click", function(ev){
-                    ev.preventDefault();
-                    editBook($(this).closest('.book_list_item ').data('isbn'));
-                });
+                addEvents();
+            },
+            error: function (xhr, status) {
+                alert("error " + status);
+            }
+        });
+    }
+    
+    var getBookRatings = function(isbn){
+
+        $.ajax({
+            url: "http://spotware-talent.local/ratings/"+isbn,
+            type: "GET",
+            crossDomain: true,
+            dataType: "json",
+            success: function (response) {
+                var rating = $('#'+isbn).find('.ratings-cont');
+                if(response.ratings.length){
+                     $(response.ratings).each(function(){
+                        //country":"canada","votes":"2","rating":"7.5000
+                        html = '';
+                        $.each( this, function( key, value ) {
+                          html +=  key + ": " + value + '; ';
+                        });                      
+                        $(rating).find('ul').append('<li class="list-group-item">'+html+'</li>');
+                        $(rating).show();
+                     });
+                }
             },
             error: function (xhr, status) {
                 alert("error " + status);
@@ -66,7 +93,11 @@ require('templates/header.php'); ?>
                 firstClass: 'first'
             }).on("page", function(event, num){
                 //$(".content4").html("Page " + num); // or some ajax content loading...
+                console.log('initPaginator');
                 loadBooksPage(num-1);
+                $('html, body').animate({
+                    scrollTop: $("body").offset().top
+                }, 1000);
             }); 
     }
     
@@ -93,6 +124,26 @@ require('templates/header.php'); ?>
         });
     }
     
+    var deleteBook =function(isbn){
+        $.ajax({
+            url: "http://spotware-talent.local/book/"+isbn,
+            type: "DELETE",
+            crossDomain: true,
+            dataType: "json",
+            async: false,
+            success: function (response) {
+                if(response.status == 'ok'){ 
+                    loadBooksPage(currentPage);
+                }else{
+                    alert("error " + response);
+                }
+            },
+            error: function (xhr, status) {
+                alert("error " + status);
+            }
+        });
+    }
+    
     var saveBook = function(){
         
         var form = $('#entry-form');
@@ -106,7 +157,6 @@ require('templates/header.php'); ?>
             //async: false,
             success: function (response) {
                 //var book = response.book;
-                console.log(response);
                 
                 if(response.status == 'ok'){ 
                     $('#bookModal').modal('hide');
@@ -115,7 +165,7 @@ require('templates/header.php'); ?>
                     })
                     loadBooksPage(currentPage);
                 }else{
-                    lert("error " + response);
+                    alert("error " + response);
                 }                    
             },
             error: function (xhr, status) {
@@ -124,19 +174,32 @@ require('templates/header.php'); ?>
         });
     }
     
+    var addEvents = function(){
+        $('.item-remove').confirmation({
+            title: 'Ara you sure?',
+            onConfirm: function() {
+                deleteBook($(this).closest('.book_list_item ').data('isbn'));
+            },
+        });
+
+        $('.item-edit').on( "click", function(ev){
+            ev.preventDefault();
+            editBook($(this).closest('.book_list_item ').data('isbn'));
+        });
+    }
+    
 
     $( document ).ready(function() {
+        
+        console.log('$( document ).ready');
+        
         loadBooksPage(0);
         initPaginator(totalPages);
+        addEvents();
         
         $('#myModal').on('shown.bs.modal', function () {
             $('#myInput').focus()
         })
-
-        $('.book_list_item a').on( "click", function(ev){
-            ev.preventDefault();
-            editBook($(this).closest('.book_list_item ').data('isbn'));
-        });
         
         $('.save-book').on( "click", function(ev){
             saveBook();
@@ -144,8 +207,6 @@ require('templates/header.php'); ?>
     });
 }($));    
 </script>
-
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg">Large modal</button>
 
 <div class="modal fade bs-example-modal-lg" id="bookModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
   <div class="modal-dialog modal-lg" role="document">
@@ -198,10 +259,6 @@ require('templates/header.php'); ?>
 
 
 <div class="container">
-    
-
-<h1>Books list</h1>
-<div class="page-selection"></div>
 <div class="book_list_items"></div>
 <div class="page-selection"></div>
 <br><br><br><br>
@@ -213,17 +270,28 @@ require('templates/header.php'); ?>
     <div class="book_list_item_template">    
         <div class="media"  data-isbn="">
             <div class="media-left">
-                <a href="#" class="thumbnail" style="width: 123px; height: 160px">
+                <span class="thumbnail" style="width: 123px; height: 160px">
                     <img class="media-object" src="...">
-                </a>
+                </span>
             </div>
-            <div class="media-body">
+            <div class="media-body" style="width: 500px">
                 <h4 class="media-heading title">Media heading</h4><br>
                 <i class="glyphicon glyphicon-user"></i> by <span class="autor">John</span><br>
                 <i class="glyphicon glyphicon-calendar"></i> <span class="publication-date">Sept 16th, 2012</span><br>
                 <i class="glyphicon glyphicon-share"></i> <span class="publisher"> publisher</span>
+                <br>
+                <br>
+                <a href="#" class="item-edit" ><i class="glyphicon glyphicon glyphicon-pencil"></i> Edit item </a><br>
+                <a href="#" class="item-remove" data-toggle="confirmation" data-title="Open Google?" ><i class="glyphicon glyphicon-remove-circle"></i> Remove item </a><br>
+                
+            </div>
+            <div class="media-left ratings-cont" style="display: none;">
+                <h4>Ratings:</h4>
+                <ul class="list-group">
+                </ul>
             </div>
         </div>
+        <hr>
     </div>    
 </div>
 

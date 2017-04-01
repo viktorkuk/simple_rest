@@ -11,8 +11,9 @@
     <link href="/bootstrap/css/bootstrap-theme.css" rel="stylesheet">
     <link href="/css/mycss.css" rel="stylesheet">
     <script src="/bootstrap/js/jquery-2.2.4.min.js"></script>
-    <script src="/bootstrap/js/jquery.bootpag.min.js"></script>
     <script src="/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/bootstrap/js/jquery.bootpag.min.js"></script>    
+    <script src="/bootstrap/js/bootstrap-confirmation.min.js"></script> 
 </head>
 
 <body>
