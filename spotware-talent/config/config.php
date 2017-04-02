@@ -1,7 +1,7 @@
 <?php
 
 
-define('SECURE_STRING', '70db57c87bcaeb30cf7ed84a4309860f'); // admin & prosteer
+define('SECURE_STRING', '9567893500c6aeaf4eade37489246785961d7ac9351cbf59322e201f21feef53f159a53d4917c27aa7c89442050b27f8928030bf970fd898449a0b396910ba75'); // root & pass
 
 define('DEFAULT_CONTROLLER', 'booklist');
 define('DEFAULT_ACTION', 'index');

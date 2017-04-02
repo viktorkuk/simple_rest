@@ -1,14 +1,115 @@
-<?php 
-
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
-require('templates/header.php'); ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>My test news blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    
+    <link href="/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="/bootstrap/css/bootstrap-theme.css" rel="stylesheet">
+    <link href="/css/mycss.css" rel="stylesheet">
+    <script src="/bootstrap/js/jquery-2.2.4.min.js"></script>
+    <script src="/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/bootstrap/js/jquery.bootpag.min.js"></script>    
+    <script src="/bootstrap/js/bootstrap-confirmation.min.js"></script>
+    <script src="/bootstrap/js/sha3.js"></script>
+</head>
 
 <script>
-(function () {    
+    (function () {    
     var totalPages = 30;
     var currentPage = 0;
+    var isLogin = 0;
+    
+    var checkIsLogin = function(){
+        $.ajax({
+            url: "http://spotware-talent.local/authenticate/",
+            type: "GET",
+            crossDomain: true,
+            dataType: "json",
+            xhrFields: {
+                withCredentials: true
+            },
+            success: function (response) {
+               isLogin = response.authenticate;
+               rebildAdminButtons();
+            },
+            error: function (xhr, status) {
+                alert("error " + status);
+            }
+        });
+    }
+    
+    var rebildAdminButtons =  function(){
+        if(isLogin){
+            $('.item-edit, .item-remove, #logout-btn').show();
+            $('#login-btn').hide();
+        }else{
+            $('.item-edit, .item-remove, #logout-btn').hide();
+            $('#login-btn').show();
+        }
+    }
+    
+    var logout = function(){
+        $.ajax({
+            url: "http://spotware-talent.local/authenticate/",
+            type: "DELETE",
+            xhrFields: {
+                withCredentials: true
+            },
+            crossDomain: true,
+            dataType: "json",
+            async: false,
+            success: function (response) {
+                if(response.status == 'ok'){ 
+                    isLogin = false;
+                    rebildAdminButtons();
+                }else{
+                    alert("error " + response);
+                }
+            },
+            error: function (xhr, status) {
+                alert("error " + status);
+            }
+        });
+    }
+    
+    var authenticate =  function(){
+        
+        var hash = CryptoJS.SHA3('' + $('#lg-userneme').val() + $('#lg-password').val());
+        
+        //console.log(hash.toString());
+        $('#login-error').hide();
+        
+        $.ajax({
+            url: "http://spotware-talent.local/authenticate/",
+            type: "POST",
+            crossDomain: true,
+            data: {
+                'hashsum': hash.toString()
+            },
+            xhrFields: {
+                withCredentials: true
+            },
+            dataType: "json",
+            success: function (response) {
+                if(response.status == 'ok'){
+                    isLogin = 1;
+                    $('#lg-userneme,#lg-password').val('');
+                    $('#loginModal').modal('hide');
+                    rebildAdminButtons();
+                }else{
+                    $('#login-error h4').text(response.error);
+                    $('#login-error').show();
+                }
+            },
+            error: function (xhr, status) {
+                alert("error " + status);
+            }
+        });
+    }
     
     var loadBooksPage = function(page){
 
@@ -93,7 +194,6 @@ require('templates/header.php'); ?>
                 firstClass: 'first'
             }).on("page", function(event, num){
                 //$(".content4").html("Page " + num); // or some ajax content loading...
-                console.log('initPaginator');
                 loadBooksPage(num-1);
                 $('html, body').animate({
                     scrollTop: $("body").offset().top
@@ -106,7 +206,6 @@ require('templates/header.php'); ?>
             url: "http://spotware-talent.local/book/"+isbn,
             type: "GET",
             crossDomain: true,
-            //data: JSON.stringify(somejson),
             dataType: "json",
             async: false,
             success: function (response) {
@@ -128,6 +227,9 @@ require('templates/header.php'); ?>
         $.ajax({
             url: "http://spotware-talent.local/book/"+isbn,
             type: "DELETE",
+            xhrFields: {
+                withCredentials: true
+            },
             crossDomain: true,
             dataType: "json",
             async: false,
@@ -139,7 +241,7 @@ require('templates/header.php'); ?>
                 }
             },
             error: function (xhr, status) {
-                alert("error " + status);
+                alert("error " + xhr.statusText);
             }
         });
     }
@@ -153,6 +255,9 @@ require('templates/header.php'); ?>
             type: "PUT",
             crossDomain: true,
             data: form.serialize(),
+            xhrFields: {
+                withCredentials: true
+            },
             dataType: "json",
             //async: false,
             success: function (response) {
@@ -169,7 +274,7 @@ require('templates/header.php'); ?>
                 }                    
             },
             error: function (xhr, status) {
-                alert("error " + status);
+                alert("error " + xhr.statusText);
             }
         });
     }
@@ -190,12 +295,10 @@ require('templates/header.php'); ?>
     
 
     $( document ).ready(function() {
-        
-        console.log('$( document ).ready');
-        
         loadBooksPage(0);
         initPaginator(totalPages);
         addEvents();
+        checkIsLogin();
         
         $('#myModal').on('shown.bs.modal', function () {
             $('#myInput').focus()
@@ -204,9 +307,45 @@ require('templates/header.php'); ?>
         $('.save-book').on( "click", function(ev){
             saveBook();
         });
+        
+        $('#login-btn').on( "click", function(ev){
+            $('#lg-userneme,#lg-password').val('');
+            $('#login-error').hide();
+            $('#loginModal').modal('show');
+        });
+        
+        $('#login-form-btn').on( "click", function(ev){
+            authenticate();
+        });
+        
+        $('#logout-btn').on( "click", function(ev){
+            logout();
+        });
     });
-}($));    
+}($));
 </script>
+
+<body>
+
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+          <a class="navbar-brand" href="#">Book catalog</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="#" id="login-btn">Login</a></li>
+                <li><a href="#" id="logout-btn" style="display:none">Logout</a></li>
+            </ul>
+        </div>
+    </div>    
+</nav>
 
 <div class="modal fade bs-example-modal-lg" id="bookModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
   <div class="modal-dialog modal-lg" role="document">
@@ -258,11 +397,47 @@ require('templates/header.php'); ?>
 
 
 
-<div class="container">
-<div class="book_list_items"></div>
-<div class="page-selection"></div>
-<br><br><br><br>
+<div class="modal fade bs-example-modal-lg" id="loginModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="gridSystemModalLabel">Login</h4><br>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="userneme" class="col-sm-3 control-label">Username</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" id="lg-userneme" name="userneme">
+                    </div>
+                </div>
+                <br>
+                <div class="form-group">
+                    <label for="password" class="col-sm-3 control-label">Password</label>
+                    <div class="col-sm-9">
+                        <input type="password" class="form-control" id="lg-password" name="password">
+                    </div>
+                </div>
+                <br>
+            </div>
+            <div id="login-error" style="display: none">
+                    <h4 style="color: red; text-align: center"></h4>
+                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary"  id="login-form-btn">Sign in</button>
+            </div>
+        </div>
+    </div>
+</div>
 
+    
+
+
+<div class="container">
+    <div class="book_list_items"></div>
+    <div class="page-selection"></div>
+    <br><br><br><br>
+</div>
 
 
 
@@ -281,8 +456,8 @@ require('templates/header.php'); ?>
                 <i class="glyphicon glyphicon-share"></i> <span class="publisher"> publisher</span>
                 <br>
                 <br>
-                <a href="#" class="item-edit" ><i class="glyphicon glyphicon glyphicon-pencil"></i> Edit item </a><br>
-                <a href="#" class="item-remove" data-toggle="confirmation" data-title="Open Google?" ><i class="glyphicon glyphicon-remove-circle"></i> Remove item </a><br>
+                <a href="#" class="item-edit" style="display: none;" ><i class="glyphicon glyphicon glyphicon-pencil"></i> Edit item </a><br>
+                <a href="#" class="item-remove" style="display: none;" data-toggle="confirmation" data-title="Open Google?" ><i class="glyphicon glyphicon-remove-circle"></i> Remove item </a><br>
                 
             </div>
             <div class="media-left ratings-cont" style="display: none;">
@@ -295,7 +470,5 @@ require('templates/header.php'); ?>
     </div>    
 </div>
 
-
-</div>
-
-<?php require('templates/footer.php') ?>
+</body>
+</html>
