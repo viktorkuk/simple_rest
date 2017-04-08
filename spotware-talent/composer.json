@@ -1,0 +1,17 @@
+{
+	"require": {
+		"silex/silex": "~2.0",
+		"monolog/monolog": "~1.11",
+		"doctrine/dbal": "~2.5",
+		"nesbot/Carbon": "~1.21"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "~4.1.4",
+		"mockery/mockery": "~0.9.1"
+	},
+	"autoload": {
+		"psr-0": {
+			"App": "src/"
+		}
+	}
+}
