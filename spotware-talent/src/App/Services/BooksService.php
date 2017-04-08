@@ -66,7 +66,7 @@ class BooksService
     private function quoteData($data)
     {
         $dataQuoted = array();
-        foreach($data as $key => $val){
+        foreach ($data as $key => $val) {
             $dataQuoted["`$key`"] = $val;
         }
         return $dataQuoted;

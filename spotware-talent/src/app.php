@@ -25,8 +25,8 @@ $app->before(function (Request $request, Application $app) {
     $request->getSession()->start();
     
     //auth check
-    if(!in_array($request->getMethod(), array('GET','OPTIONS')) 
-            && strpos($request->getPathInfo(), '/book/')){
+    if ( !in_array($request->getMethod(), array('GET','OPTIONS')) 
+            && strpos($request->getPathInfo(), '/book/')) {
         $app['auth.service']->checkAuth();
     }
 });

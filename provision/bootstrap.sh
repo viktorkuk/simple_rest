@@ -27,12 +27,21 @@ sudo -E apt-get -q install mariadb-server mariadb-client -y
 echo -e "\033[32mstart mysql server...\033[0m"
 sudo /etc/init.d/mysql start
 
-sudo mysql -e "CREATE DATABASE spotware_talent DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;"
+echo -e "\033[32mCREATE DATABASE spotware_talent...\033[0m"
+sudo mysql -e "CREATE DATABASE IF NOT EXISTS spotware_talent DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;"
 
-#import tables
+echo -e "\033[32mImport BX-Books.sql...\033[0m"
 sudo mysql spotware_talent < /vagrant/BX-Books.sql
+
+echo -e "\033[32mImport BX-Users.sql...\033[0m"
 sudo mysql spotware_talent < /vagrant/BX-Users.sql
+
+echo -e "\033[32mImport BX-Book-Ratings.sql...\033[0m"
 sudo mysql spotware_talent < /vagrant/BX-Book-Ratings.sql
+
+echo -e "\033[32mSET NAMES 'utf8'...\033[0m"
+sudo mysql -e "SET NAMES 'utf8';"
+sudo mysql -e "SET CHARACTER SET utf8;"
 
 echo -e "\033[32minstall nginx...\033[0m"
 sudo apt-get install nginx -y
@@ -62,4 +71,7 @@ if ! [ -L /var/www ]; then
     sudo rm -rf /var/www
     sudo ln -fs /vagrant /var/www
 fi
+
+echo -e "\033[32minstall silex...\033[0m"
+composer install -d /vagrant/spotware-talent/
 

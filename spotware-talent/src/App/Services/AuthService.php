@@ -13,7 +13,7 @@ class AuthService
     
     public function checkAuth()
     {
-        if(!$this->isLogin()){
+        if (!$this->isLogin()) {
             $this->app->abort(401);
         }
         return true;
@@ -21,7 +21,7 @@ class AuthService
     
     public function isLogin()
     {
-        if($this->app['session']->has('is_admin')){
+        if ($this->app['session']->has('is_admin')) {
             return $this->app['session']->get('is_admin') == $this->app['auth.token'];
         }
         return false;
@@ -29,7 +29,7 @@ class AuthService
     
     public function login($secureString)
     {
-        if($secureString == $this->app['auth.token']){
+        if ($secureString == $this->app['auth.token']) {
             $this->app['session']->set('is_admin',$secureString);
             return true;
         }

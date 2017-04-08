@@ -22,9 +22,9 @@ class AuthController {
     
     public function login(Request $request)
     {
-        if($this->service->login($_POST['hashsum'])){
+        if ($this->service->login($_POST['hashsum'])) {
             return new JsonResponse(array('status' => 'ok'));
-        }else{
+        } else {
             return new JsonResponse(array('status' => 'fail', 'error' => 'Authorization failed'));
         }
     }
